@@ -6,7 +6,7 @@
 /*   By: bszikora <bszikora@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/07 12:59:16 by bszikora          #+#    #+#             */
-/*   Updated: 2024/10/31 12:29:14 by bszikora         ###   ########.fr       */
+/*   Updated: 2024/11/12 12:44:47 by bszikora         ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -27,6 +27,8 @@ typedef struct s_philoargs {
     int time_to_sleep;
     int no_t_philosopher_must_eat;
     int extra;
+	long firstime;
+	pthread_mutex_t terminate_mutex;
     pthread_mutex_t print_mutex;
     pthread_mutex_t *forks;
 } t_philoargs;
