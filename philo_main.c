@@ -6,7 +6,7 @@
 /*   By: bszikora <bszikora@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/07 12:59:05 by bszikora          #+#    #+#             */
-/*   Updated: 2024/10/31 12:29:30 by bszikora         ###   ########.fr       */
+/*   Updated: 2024/11/12 13:02:32 by bszikora         ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -31,14 +31,23 @@ void threads_join(t_philoargs *args, pthread_t *thread)
     }
 }
 
-void print_state(t_philosopher *philo, char *state, t_philoargs *philoarg)
+void precise_sleep(long duration)
 {
-    long timestamp;
+    long start_time = get_time_of_day();
+    while ((get_time_of_day() - start_time) < duration)
+    {
+        usleep(1000); // Sleep for a short interval to avoid busy-waiting
+    }
+}
 
-    pthread_mutex_lock(&philoarg->print_mutex);
-    timestamp = get_time_of_day();
-    printf("%ld %d %s\n", timestamp, philo->id, state);
-    pthread_mutex_unlock(&philoarg->print_mutex);
+void print_state(t_philosopher *philo, const char *state, t_philoargs *args)
+{
+	long time;
+
+    pthread_mutex_lock(&args->print_mutex);
+	time = get_time_of_day() - args->firstime;
+    printf("%ld %d %s\n", time, philo->id, state);
+    pthread_mutex_unlock(&args->print_mutex);
 }
 
 void threads_free(t_philoargs *args, pthread_t *thread, t_philosopher *philo)
@@ -61,13 +70,10 @@ void threads_free(t_philoargs *args, pthread_t *thread, t_philosopher *philo)
 
 void *monitor_routine(void *arg)
 {
-    t_philosopher *philos;
-    t_philoargs *args;
+    t_philosopher *philos = (t_philosopher *)arg;
+    t_philoargs *args = philos[0].args;
     int i;
     long time_since_last_meal;
-
-    philos = (t_philosopher *)arg;
-    args = philos[0].args;
 
     while (1)
     {
@@ -77,60 +83,52 @@ void *monitor_routine(void *arg)
             pthread_mutex_lock(&philos[i].meal_mutex);
             time_since_last_meal = get_time_of_day() - philos[i].last_meal_time;
             pthread_mutex_unlock(&philos[i].meal_mutex);
-
             if (time_since_last_meal > args->time_to_die)
             {
                 pthread_mutex_lock(&args->print_mutex);
                 printf("%ld %d died\n", get_time_of_day(), philos[i].id);
+				printf("DEBUG: Philosopher %d died. Time since last meal: %ld ms, Time to die: %d ms\n",
+                       philos[i].id, time_since_last_meal, args->time_to_die);
                 exit(0);
             }
-            i = i + 1;
+            i++;
         }
-        usleep(1000);
+        precise_sleep(100);
     }
+    return NULL;
 }
 
 
 void *philo_routine(void *arg)
 {
-    t_philosopher *philo;
-    t_philoargs *philoarg;
-    pthread_mutex_t *left_fork;
-    pthread_mutex_t *right_fork;
-
-    philo = (t_philosopher *)arg;
-    philoarg = philo->args;
-    left_fork = philo->fork;
-    right_fork = &philoarg->forks[(philo->id + 1) % philoarg->no_philosophers];
+    t_philosopher *philo = (t_philosopher *)arg;
+    t_philoargs *philoarg = philo->args;
+    pthread_mutex_t *left_fork = philo->fork;
+    pthread_mutex_t *right_fork = &philoarg->forks[(philo->id) % philoarg->no_philosophers];
 
     if (philo->id % 2 == 0)
     {
-        usleep(1000);
+        precise_sleep(100);
     }
 
     while (1)
     {
         print_state(philo, "is thinking", philoarg);
-
         pthread_mutex_lock(left_fork);
         print_state(philo, "has taken a fork", philoarg);
-
         pthread_mutex_lock(right_fork);
         print_state(philo, "has taken a fork", philoarg);
-
         pthread_mutex_lock(&philo->meal_mutex);
         philo->last_meal_time = get_time_of_day();
         pthread_mutex_unlock(&philo->meal_mutex);
-
         print_state(philo, "is eating", philoarg);
-        usleep(philoarg->time_to_eat * 1000);
-
+        precise_sleep(philoarg->time_to_eat);
         pthread_mutex_unlock(right_fork);
         pthread_mutex_unlock(left_fork);
-
         print_state(philo, "is sleeping", philoarg);
-        usleep(philoarg->time_to_sleep * 1000);
+        precise_sleep(philoarg->time_to_sleep);
     }
+    return NULL;
 }
 
 void threads_init(t_philoargs *args, pthread_t **thread, t_philosopher **philo)
@@ -148,18 +146,18 @@ void threads_init(t_philoargs *args, pthread_t **thread, t_philosopher **philo)
     {
         pthread_mutex_init(&args->forks[i], NULL);
         pthread_mutex_init(&(*philo)[i].meal_mutex, NULL);
-        (*philo)[i].id = i;
+        (*philo)[i].id = i + 1;
         (*philo)[i].fork = &args->forks[i];
         (*philo)[i].args = args;
         (*philo)[i].last_meal_time = get_time_of_day();
-        i = i + 1;
+        i++;
     }
 
     i = 0;
     while (i < args->no_philosophers)
     {
         pthread_create(&(*thread)[i], NULL, philo_routine, &(*philo)[i]);
-        i = i + 1;
+        i++;
     }
 }
 
@@ -174,6 +172,7 @@ int main(int argc, char **argv)
     thread = NULL;
     philo = NULL;
     parse_error = user_input_parse(&args, argc, argv);
+	args.firstime = get_time_of_day();
     if (parse_error)
     {
         return (1);
