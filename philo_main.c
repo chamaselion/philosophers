@@ -6,7 +6,7 @@
 /*   By: bszikora <bszikora@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/07 12:59:05 by bszikora          #+#    #+#             */
-/*   Updated: 2024/11/12 13:02:32 by bszikora         ###   ########.fr       */
+/*   Updated: 2024/11/21 14:00:00 by bszikora         ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -36,7 +36,7 @@ void precise_sleep(long duration)
     long start_time = get_time_of_day();
     while ((get_time_of_day() - start_time) < duration)
     {
-        usleep(1000); // Sleep for a short interval to avoid busy-waiting
+        usleep(1000);
     }
 }
 
@@ -68,16 +68,44 @@ void threads_free(t_philoargs *args, pthread_t *thread, t_philosopher *philo)
     free(philo);
 }
 
+void	extra_checker(int *all_right, t_philosopher *philos, t_philoargs *args)
+{
+	int j;
+
+	j = 0;
+	*all_right = 1;
+	while (j < args->no_philosophers)
+        {
+            if (philos[j].times_eaten < args->no_t_philosopher_must_eat)
+            {
+                *all_right = 0;
+                break;
+            }
+		j++;
+        }
+}
+
 void *monitor_routine(void *arg)
 {
     t_philosopher *philos = (t_philosopher *)arg;
     t_philoargs *args = philos[0].args;
     int i;
     long time_since_last_meal;
+	int all_right;
 
     while (1)
     {
         i = 0;
+		if (args->extra > 0)
+        {
+			extra_checker(&all_right, philos, args);
+            if (all_right)
+            {
+                pthread_mutex_lock(&args->print_mutex);
+                printf("All philosophers have eaten enough times\n");
+                exit(0);
+            }
+        }
         while (i < args->no_philosophers)
         {
             pthread_mutex_lock(&philos[i].meal_mutex);
@@ -95,7 +123,7 @@ void *monitor_routine(void *arg)
         }
         precise_sleep(100);
     }
-    return NULL;
+    return (NULL);
 }
 
 
@@ -103,9 +131,17 @@ void *philo_routine(void *arg)
 {
     t_philosopher *philo = (t_philosopher *)arg;
     t_philoargs *philoarg = philo->args;
-    pthread_mutex_t *left_fork = philo->fork;
-    pthread_mutex_t *right_fork = &philoarg->forks[(philo->id) % philoarg->no_philosophers];
+    pthread_mutex_t *left_fork;
+    pthread_mutex_t *right_fork;
 
+	if (philo->id % 2 == 0) {
+        left_fork = philo->fork;
+        right_fork = &philo->args->forks[philo->id % philo->args->no_philosophers];
+    } else {
+        right_fork = philo->fork;
+        left_fork = &philo->args->forks[philo->id % philo->args->no_philosophers];
+    }
+	
     if (philo->id % 2 == 0)
     {
         precise_sleep(100);
@@ -120,6 +156,7 @@ void *philo_routine(void *arg)
         print_state(philo, "has taken a fork", philoarg);
         pthread_mutex_lock(&philo->meal_mutex);
         philo->last_meal_time = get_time_of_day();
+		philo->times_eaten++;
         pthread_mutex_unlock(&philo->meal_mutex);
         print_state(philo, "is eating", philoarg);
         precise_sleep(philoarg->time_to_eat);
@@ -128,7 +165,7 @@ void *philo_routine(void *arg)
         print_state(philo, "is sleeping", philoarg);
         precise_sleep(philoarg->time_to_sleep);
     }
-    return NULL;
+    return (NULL);
 }
 
 void threads_init(t_philoargs *args, pthread_t **thread, t_philosopher **philo)
@@ -150,6 +187,7 @@ void threads_init(t_philoargs *args, pthread_t **thread, t_philosopher **philo)
         (*philo)[i].fork = &args->forks[i];
         (*philo)[i].args = args;
         (*philo)[i].last_meal_time = get_time_of_day();
+		(*philo)[i].times_eaten = 0;
         i++;
     }
 
