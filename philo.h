@@ -6,7 +6,7 @@
 /*   By: bszikora <bszikora@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/07 12:59:16 by bszikora          #+#    #+#             */
-/*   Updated: 2024/11/12 12:44:47 by bszikora         ###   ########.fr       */
+/*   Updated: 2024/11/21 13:45:54 by bszikora         ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -38,6 +38,7 @@ typedef struct s_philosopher {
     pthread_mutex_t *fork;
     t_philoargs *args;
     long last_meal_time;
+	int	times_eaten;
     pthread_mutex_t meal_mutex;
 } t_philosopher;
 
