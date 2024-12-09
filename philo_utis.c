@@ -6,9 +6,11 @@
 /*   By: bszikora <bszikora@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/08 14:36:56 by bszikora          #+#    #+#             */
-/*   Updated: 2024/10/08 14:38:06 by bszikora         ###   ########.fr       */
+/*   Updated: 2024/12/09 16:17:54 by bszikora         ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
+
+#include "philo.h"
 
 int ft_atoi(const char *t)
 {
@@ -55,3 +57,11 @@ int str_isdigit(char *i)
 	}
 	return (rv);
 }
+
+long get_time_of_day()
+{
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
+}
+
