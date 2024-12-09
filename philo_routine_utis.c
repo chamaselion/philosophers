@@ -6,12 +6,11 @@
 /*   By: bszikora <bszikora@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/09 16:03:00 by bszikora          #+#    #+#             */
-/*   Updated: 2024/12/09 16:18:03 by bszikora         ###   ########.fr       */
+/*   Updated: 2024/12/09 17:06:16 by bszikora         ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
 #include "philo.h"
-
 void precise_sleep(long duration)
 {
     long start_time;
@@ -22,14 +21,23 @@ void precise_sleep(long duration)
     }
 }
 
+// In philo_routine_utis.c
 void print_state(t_philosopher *philo, const char *state, t_philoargs *args)
 {
-	long time;
+    long time;
+    int should_print;
 
-    pthread_mutex_lock(&args->print_mutex);
-	time = get_time_of_day() - args->firstime;
-    printf("%ld %d %s\n", time, philo->id, state);
-    pthread_mutex_unlock(&args->print_mutex);
+    pthread_mutex_lock(&args->terminate_mutex);
+    should_print = !args->should_terminate;
+    pthread_mutex_unlock(&args->terminate_mutex);
+
+    if (should_print)
+    {
+        pthread_mutex_lock(&args->print_mutex);
+        time = get_time_of_day() - args->firstime;
+        printf("%ld %d %s\n", time, philo->id, state);
+        pthread_mutex_unlock(&args->print_mutex);
+    }
 }
 
 void extra_checker(int *all_right, t_philosopher *philos, t_philoargs *args)
