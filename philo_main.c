@@ -6,7 +6,7 @@
 /*   By: bszikora <bszikora@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/07 12:59:05 by bszikora          #+#    #+#             */
-/*   Updated: 2024/11/21 14:00:00 by bszikora         ###   ########.fr       */
+/*   Updated: 2024/12/09 14:21:55 by bszikora         ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -68,21 +68,25 @@ void threads_free(t_philoargs *args, pthread_t *thread, t_philosopher *philo)
     free(philo);
 }
 
-void	extra_checker(int *all_right, t_philosopher *philos, t_philoargs *args)
+void extra_checker(int *all_right, t_philosopher *philos, t_philoargs *args)
 {
-	int j;
+    int i;
 
-	j = 0;
-	*all_right = 1;
-	while (j < args->no_philosophers)
+    i = 0;
+    *all_right = 1;  // Start assuming all have eaten enough
+    
+    while (i < args->no_philosophers)
+    {
+        pthread_mutex_lock(&philos[i].meal_mutex);
+        if (philos[i].times_eaten < args->no_t_philosopher_must_eat)
         {
-            if (philos[j].times_eaten < args->no_t_philosopher_must_eat)
-            {
-                *all_right = 0;
-                break;
-            }
-		j++;
+            *all_right = 0;  // Found a philosopher who hasn't eaten enough
+            pthread_mutex_unlock(&philos[i].meal_mutex);
+            break;
         }
+        pthread_mutex_unlock(&philos[i].meal_mutex);
+        i++;
+    }
 }
 
 void *monitor_routine(void *arg)
@@ -91,14 +95,14 @@ void *monitor_routine(void *arg)
     t_philoargs *args = philos[0].args;
     int i;
     long time_since_last_meal;
-	int all_right;
+    int all_right;
 
     while (1)
     {
         i = 0;
-		if (args->extra > 0)
+        if (args->extra > 0)
         {
-			extra_checker(&all_right, philos, args);
+            extra_checker(&all_right, philos, args);
             if (all_right)
             {
                 pthread_mutex_lock(&args->print_mutex);
@@ -110,20 +114,18 @@ void *monitor_routine(void *arg)
         {
             pthread_mutex_lock(&philos[i].meal_mutex);
             time_since_last_meal = get_time_of_day() - philos[i].last_meal_time;
-            pthread_mutex_unlock(&philos[i].meal_mutex);
             if (time_since_last_meal > args->time_to_die)
             {
                 pthread_mutex_lock(&args->print_mutex);
-                printf("%ld %d died\n", get_time_of_day(), philos[i].id);
-				printf("DEBUG: Philosopher %d died. Time since last meal: %ld ms, Time to die: %d ms\n",
-                       philos[i].id, time_since_last_meal, args->time_to_die);
+                printf("%ld %d died\n", (get_time_of_day() - args->firstime), philos[i].id);
                 exit(0);
             }
+            pthread_mutex_unlock(&philos[i].meal_mutex);
             i++;
         }
-        precise_sleep(100);
+        usleep(1000); // Sleep for 1ms instead of longer intervals
     }
-    return (NULL);
+    return NULL;
 }
 
 
