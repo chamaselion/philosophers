@@ -6,7 +6,7 @@
 /*   By: bszikora <bszikora@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/07 12:59:05 by bszikora          #+#    #+#             */
-/*   Updated: 2024/12/09 16:17:37 by bszikora         ###   ########.fr       */
+/*   Updated: 2024/12/09 17:04:49 by bszikora         ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -36,6 +36,7 @@ void threads_free(t_philoargs *args, pthread_t *thread, t_philosopher *philo)
         i++;
     }
     pthread_mutex_destroy(&args->print_mutex);
+    pthread_mutex_destroy(&args->terminate_mutex);  // Add this line
     free(args->forks);
     free(thread);
     free(philo);
@@ -50,6 +51,8 @@ void threads_init(t_philoargs *args, pthread_t **thread, t_philosopher **philo)
     *philo = malloc(sizeof(t_philosopher) * args->no_philosophers);
     args->forks = malloc(sizeof(pthread_mutex_t) * args->no_philosophers);
     pthread_mutex_init(&args->print_mutex, NULL);
+	pthread_mutex_init(&args->terminate_mutex, NULL);  // Add this line
+    args->should_terminate = 0;
     while (i < args->no_philosophers)
     {
         pthread_mutex_init(&args->forks[i], NULL);
