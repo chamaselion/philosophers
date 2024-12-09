@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror
-SRCS = philo_main.c philo_utis.c philo_get_args.c
+SRCS = philo_main.c philo_utis.c philo_get_args.c philo_routine_utis.c philo_routines.c
 OBJS = $(addprefix objects/, $(SRCS:.c=.o))
 NAME = philo
 
