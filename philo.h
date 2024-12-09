@@ -6,7 +6,7 @@
 /*   By: bszikora <bszikora@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/07 12:59:16 by bszikora          #+#    #+#             */
-/*   Updated: 2024/12/09 16:18:16 by bszikora         ###   ########.fr       */
+/*   Updated: 2024/12/09 16:55:43 by bszikora         ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -31,6 +31,7 @@ typedef struct s_philoargs {
 	pthread_mutex_t terminate_mutex;
     pthread_mutex_t print_mutex;
     pthread_mutex_t *forks;
+	int should_terminate;
 } t_philoargs;
 
 typedef struct s_philosopher {
@@ -45,6 +46,7 @@ typedef struct s_philosopher {
 
 // philo utilities
 int str_isdigit(char *i);
+void threads_free(t_philoargs *args, pthread_t *thread, t_philosopher *philo);
 int ft_atoi(const char *t);
 long get_time_of_day();
 void initialize_forks(t_philosopher *philo, pthread_mutex_t **left_fork, pthread_mutex_t **right_fork);
