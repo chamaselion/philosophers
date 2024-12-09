@@ -6,18 +6,11 @@
 /*   By: bszikora <bszikora@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/07 12:59:05 by bszikora          #+#    #+#             */
-/*   Updated: 2024/12/09 14:21:55 by bszikora         ###   ########.fr       */
+/*   Updated: 2024/12/09 16:17:37 by bszikora         ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
 #include "philo.h"
-
-long get_time_of_day()
-{
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    return (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
-}
 
 void threads_join(t_philoargs *args, pthread_t *thread)
 {
@@ -31,25 +24,6 @@ void threads_join(t_philoargs *args, pthread_t *thread)
     }
 }
 
-void precise_sleep(long duration)
-{
-    long start_time = get_time_of_day();
-    while ((get_time_of_day() - start_time) < duration)
-    {
-        usleep(1000);
-    }
-}
-
-void print_state(t_philosopher *philo, const char *state, t_philoargs *args)
-{
-	long time;
-
-    pthread_mutex_lock(&args->print_mutex);
-	time = get_time_of_day() - args->firstime;
-    printf("%ld %d %s\n", time, philo->id, state);
-    pthread_mutex_unlock(&args->print_mutex);
-}
-
 void threads_free(t_philoargs *args, pthread_t *thread, t_philosopher *philo)
 {
     int i;
@@ -59,115 +33,12 @@ void threads_free(t_philoargs *args, pthread_t *thread, t_philosopher *philo)
     {
         pthread_mutex_destroy(&args->forks[i]);
         pthread_mutex_destroy(&philo[i].meal_mutex);
-        i = i + 1;
+        i++;
     }
     pthread_mutex_destroy(&args->print_mutex);
-
     free(args->forks);
     free(thread);
     free(philo);
-}
-
-void extra_checker(int *all_right, t_philosopher *philos, t_philoargs *args)
-{
-    int i;
-
-    i = 0;
-    *all_right = 1;  // Start assuming all have eaten enough
-    
-    while (i < args->no_philosophers)
-    {
-        pthread_mutex_lock(&philos[i].meal_mutex);
-        if (philos[i].times_eaten < args->no_t_philosopher_must_eat)
-        {
-            *all_right = 0;  // Found a philosopher who hasn't eaten enough
-            pthread_mutex_unlock(&philos[i].meal_mutex);
-            break;
-        }
-        pthread_mutex_unlock(&philos[i].meal_mutex);
-        i++;
-    }
-}
-
-void *monitor_routine(void *arg)
-{
-    t_philosopher *philos = (t_philosopher *)arg;
-    t_philoargs *args = philos[0].args;
-    int i;
-    long time_since_last_meal;
-    int all_right;
-
-    while (1)
-    {
-        i = 0;
-        if (args->extra > 0)
-        {
-            extra_checker(&all_right, philos, args);
-            if (all_right)
-            {
-                pthread_mutex_lock(&args->print_mutex);
-                printf("All philosophers have eaten enough times\n");
-                exit(0);
-            }
-        }
-        while (i < args->no_philosophers)
-        {
-            pthread_mutex_lock(&philos[i].meal_mutex);
-            time_since_last_meal = get_time_of_day() - philos[i].last_meal_time;
-            if (time_since_last_meal > args->time_to_die)
-            {
-                pthread_mutex_lock(&args->print_mutex);
-                printf("%ld %d died\n", (get_time_of_day() - args->firstime), philos[i].id);
-                exit(0);
-            }
-            pthread_mutex_unlock(&philos[i].meal_mutex);
-            i++;
-        }
-        usleep(1000); // Sleep for 1ms instead of longer intervals
-    }
-    return NULL;
-}
-
-
-void *philo_routine(void *arg)
-{
-    t_philosopher *philo = (t_philosopher *)arg;
-    t_philoargs *philoarg = philo->args;
-    pthread_mutex_t *left_fork;
-    pthread_mutex_t *right_fork;
-
-	if (philo->id % 2 == 0) {
-        left_fork = philo->fork;
-        right_fork = &philo->args->forks[philo->id % philo->args->no_philosophers];
-    } else {
-        right_fork = philo->fork;
-        left_fork = &philo->args->forks[philo->id % philo->args->no_philosophers];
-    }
-	
-    if (philo->id % 2 == 0)
-    {
-        precise_sleep(100);
-    }
-
-    while (1)
-    {
-        print_state(philo, "is thinking", philoarg);
-        pthread_mutex_lock(left_fork);
-        print_state(philo, "has taken a fork", philoarg);
-        pthread_mutex_lock(right_fork);
-        print_state(philo, "has taken a fork", philoarg);
-        pthread_mutex_lock(&philo->meal_mutex);
-        philo->last_meal_time = get_time_of_day();
-		philo->times_eaten++;
-        pthread_mutex_unlock(&philo->meal_mutex);
-        print_state(philo, "is eating", philoarg);
-        precise_sleep(philoarg->time_to_eat);
-        pthread_mutex_unlock(right_fork);
-        pthread_mutex_unlock(left_fork);
-        print_state(philo, "is sleeping", philoarg);
-        precise_sleep(philoarg->time_to_sleep);
-    }
-    return (NULL);
 }
 
 void threads_init(t_philoargs *args, pthread_t **thread, t_philosopher **philo)
@@ -178,9 +49,7 @@ void threads_init(t_philoargs *args, pthread_t **thread, t_philosopher **philo)
     *thread = malloc(sizeof(pthread_t) * args->no_philosophers);
     *philo = malloc(sizeof(t_philosopher) * args->no_philosophers);
     args->forks = malloc(sizeof(pthread_mutex_t) * args->no_philosophers);
-
     pthread_mutex_init(&args->print_mutex, NULL);
-
     while (i < args->no_philosophers)
     {
         pthread_mutex_init(&args->forks[i], NULL);
@@ -192,7 +61,6 @@ void threads_init(t_philoargs *args, pthread_t **thread, t_philosopher **philo)
 		(*philo)[i].times_eaten = 0;
         i++;
     }
-
     i = 0;
     while (i < args->no_philosophers)
     {
@@ -208,16 +76,14 @@ int main(int argc, char **argv)
     t_philosopher *philo;
     int parse_error;
     pthread_t monitor_thread;
-
     thread = NULL;
     philo = NULL;
     parse_error = user_input_parse(&args, argc, argv);
-	args.firstime = get_time_of_day();
     if (parse_error)
-    {
+	{
         return (1);
-    }
-
+	}
+	args.firstime = get_time_of_day();
     threads_init(&args, &thread, &philo);
     pthread_create(&monitor_thread, NULL, monitor_routine, philo);
     threads_join(&args, thread);
