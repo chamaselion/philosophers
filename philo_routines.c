@@ -6,7 +6,7 @@
 /*   By: bszikora <bszikora@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/09 16:04:50 by bszikora          #+#    #+#             */
-/*   Updated: 2024/12/11 14:17:19 by bszikora         ###   ########.fr       */
+/*   Updated: 2024/12/11 16:12:34 by bszikora         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,7 @@ void	*monitor_routine(void *arg)
 				return (NULL);
 			i++;
 		}
-		usleep(100);
+		usleep(1000);
 	}
 	return (NULL);
 }
@@ -66,6 +66,15 @@ void	eating_routine(t_philosopher *philo, pthread_mutex_t *left_fork,
 {
 	pthread_mutex_lock(left_fork);
 	print_state(philo, "has taken a fork", philoarg);
+	if (philoarg->no_philosophers == 1)
+	{
+		precise_sleep(philoarg->time_to_die + 1, philoarg);
+		pthread_mutex_unlock(left_fork);
+		pthread_mutex_lock(&philoarg->terminate_mutex);
+		philoarg->should_terminate = 1;
+		pthread_mutex_unlock(&philoarg->terminate_mutex);
+		return ;
+	}
 	pthread_mutex_lock(right_fork);
 	print_state(philo, "has taken a fork", philoarg);
 	philo->is_eating = 1;
@@ -73,7 +82,7 @@ void	eating_routine(t_philosopher *philo, pthread_mutex_t *left_fork,
 	philo->last_meal_time = get_time_of_day();
 	philo->times_eaten++;
 	print_state(philo, "is eating", philoarg);
-	precise_sleep(philoarg->time_to_eat);
+	precise_sleep(philoarg->time_to_eat, philoarg);
 	pthread_mutex_unlock(right_fork);
 	pthread_mutex_unlock(left_fork);
 	pthread_mutex_unlock(&philo->meal_mutex);
@@ -83,7 +92,7 @@ void	eating_routine(t_philosopher *philo, pthread_mutex_t *left_fork,
 void	sleeping_routine(t_philosopher *philo, t_philoargs *philoarg)
 {
 	print_state(philo, "is sleeping", philoarg);
-	precise_sleep(philoarg->time_to_sleep);
+	precise_sleep(philoarg->time_to_sleep, philoarg);
 }
 
 void	*philo_routine(void *arg)
@@ -97,7 +106,7 @@ void	*philo_routine(void *arg)
 	philoarg = philo->args;
 	initialize_forks(philo, &left_fork, &right_fork);
 	if (philo->id % 2 == 0)
-		precise_sleep(100);
+		usleep(1000);
 	while (1)
 	{
 		pthread_mutex_lock(&philoarg->terminate_mutex);
