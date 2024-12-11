@@ -60,7 +60,7 @@ void	*philo_routine(void *arg);
 void	*monitor_routine(void *arg);
 
 //philo routine utis
-void	precise_sleep(long duration);
+void	precise_sleep(long duration, t_philoargs *args);
 void	print_state(t_philosopher *philo, const char *state, t_philoargs *args);
 void	extra_checker(int *all_right, t_philosopher *philos, t_philoargs *args);
 int		check_meals_completion(t_philosopher *philos, t_philoargs *args);
