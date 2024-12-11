@@ -6,38 +6,46 @@
 /*   By: bszikora <bszikora@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/09 16:03:00 by bszikora          #+#    #+#             */
-/*   Updated: 2024/12/11 14:18:24 by bszikora         ###   ########.fr       */
+/*   Updated: 2024/12/11 16:14:56 by bszikora         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-void	precise_sleep(long duration)
+void	precise_sleep(long duration, t_philoargs *args)
 {
 	long	start_time;
 
 	start_time = get_time_of_day();
 	while ((get_time_of_day() - start_time) < duration)
 	{
-		usleep(1000);
+		pthread_mutex_lock(&args->terminate_mutex);
+		if (args->should_terminate)
+		{
+			pthread_mutex_unlock(&args->terminate_mutex);
+			break ;
+		}
+		pthread_mutex_unlock(&args->terminate_mutex);
+		usleep(10);
 	}
 }
 
 void	print_state(t_philosopher *philo, const char *state, t_philoargs *args)
 {
 	long	time;
-	int		should_print;
 
 	pthread_mutex_lock(&args->terminate_mutex);
-	should_print = !args->should_terminate;
-	pthread_mutex_unlock(&args->terminate_mutex);
-	if (should_print)
+	pthread_mutex_lock(&args->print_mutex);
+	if (args->should_terminate)
 	{
-		pthread_mutex_lock(&args->print_mutex);
-		time = get_time_of_day() - args->firstime;
-		printf("%ld %d %s\n", time, philo->id, state);
 		pthread_mutex_unlock(&args->print_mutex);
+		pthread_mutex_unlock(&args->terminate_mutex);
+		return ;
 	}
+	time = get_time_of_day() - args->firstime;
+	printf("%ld %d %s\n", time, philo->id, state);
+	pthread_mutex_unlock(&args->print_mutex);
+	pthread_mutex_unlock(&args->terminate_mutex);
 }
 
 void	extra_checker(int *all_right, t_philosopher *philos, t_philoargs *args)
