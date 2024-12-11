@@ -6,7 +6,7 @@
 /*   By: bszikora <bszikora@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/07 12:59:05 by bszikora          #+#    #+#             */
-/*   Updated: 2024/12/11 15:00:17 by bszikora         ###   ########.fr       */
+/*   Updated: 2024/12/11 15:45:49 by bszikora         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,6 +96,7 @@ int	main(int argc, char **argv)
 	threads_init(&args, &thread, &philo);
 	pthread_create(&monitor_thread, NULL, monitor_routine, philo);
 	threads_join(&args, thread);
+	pthread_join(monitor_thread, NULL);
 	threads_free(&args, thread, philo);
 	return (0);
 }
