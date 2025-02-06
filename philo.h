@@ -64,6 +64,7 @@ void	precise_sleep(long duration, t_philoargs *args);
 void	print_state(t_philosopher *philo, const char *state, t_philoargs *args);
 void	extra_checker(int *all_right, t_philosopher *philos, t_philoargs *args);
 int		check_meals_completion(t_philosopher *philos, t_philoargs *args);
+int		check_philosopher_death(t_philosopher *philo, t_philoargs *args);
 
 // philo input handle
 int		user_input_parse(t_philoargs *args, int argc, char **argv);

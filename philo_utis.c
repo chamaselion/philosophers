@@ -66,3 +66,25 @@ long	get_time_of_day(void)
 	gettimeofday(&tv, NULL);
 	return ((tv.tv_sec * 1000) + (tv.tv_usec / 1000));
 }
+
+int	check_philosopher_death(t_philosopher *philo, t_philoargs *args)
+{
+	long	time_since_last_meal;
+
+		pthread_mutex_lock(&philo->meal_mutex);
+		time_since_last_meal = get_time_of_day() - philo->last_meal_time;
+		if (time_since_last_meal > args->time_to_die)
+		{
+			pthread_mutex_lock(&args->terminate_mutex);
+			args->should_terminate = 1;
+			pthread_mutex_unlock(&args->terminate_mutex);
+			pthread_mutex_lock(&args->print_mutex);
+			printf("%ld %d died\n", (get_time_of_day() - args->firstime),
+				philo->id);
+			pthread_mutex_unlock(&args->print_mutex);
+			pthread_mutex_unlock(&philo->meal_mutex);
+			return (1);
+		}
+		pthread_mutex_unlock(&philo->meal_mutex);
+	return (0);
+}

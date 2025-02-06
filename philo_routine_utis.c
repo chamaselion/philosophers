@@ -26,7 +26,7 @@ void	precise_sleep(long duration, t_philoargs *args)
 			break ;
 		}
 		pthread_mutex_unlock(&args->terminate_mutex);
-		usleep(10);
+		usleep(50);
 	}
 }
 
