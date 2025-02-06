@@ -6,7 +6,7 @@
 /*   By: bszikora <bszikora@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/08 14:36:56 by bszikora          #+#    #+#             */
-/*   Updated: 2024/12/11 13:58:37 by bszikora         ###   ########.fr       */
+/*   Updated: 2025/02/06 16:26:07 by bszikora         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,20 +71,20 @@ int	check_philosopher_death(t_philosopher *philo, t_philoargs *args)
 {
 	long	time_since_last_meal;
 
-		pthread_mutex_lock(&philo->meal_mutex);
-		time_since_last_meal = get_time_of_day() - philo->last_meal_time;
-		if (time_since_last_meal > args->time_to_die)
-		{
-			pthread_mutex_lock(&args->terminate_mutex);
-			args->should_terminate = 1;
-			pthread_mutex_unlock(&args->terminate_mutex);
-			pthread_mutex_lock(&args->print_mutex);
-			printf("%ld %d died\n", (get_time_of_day() - args->firstime),
-				philo->id);
-			pthread_mutex_unlock(&args->print_mutex);
-			pthread_mutex_unlock(&philo->meal_mutex);
-			return (1);
-		}
+	pthread_mutex_lock(&philo->meal_mutex);
+	time_since_last_meal = get_time_of_day() - philo->last_meal_time;
+	if (time_since_last_meal > args->time_to_die)
+	{
+		pthread_mutex_lock(&args->terminate_mutex);
+		args->should_terminate = 1;
+		pthread_mutex_unlock(&args->terminate_mutex);
+		pthread_mutex_lock(&args->print_mutex);
+		printf("%ld %d died\n", (get_time_of_day() - args->firstime),
+			philo->id);
+		pthread_mutex_unlock(&args->print_mutex);
 		pthread_mutex_unlock(&philo->meal_mutex);
+		return (1);
+	}
+	pthread_mutex_unlock(&philo->meal_mutex);
 	return (0);
 }
