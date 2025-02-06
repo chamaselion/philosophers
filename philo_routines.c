@@ -16,8 +16,6 @@ int	check_philosopher_death(t_philosopher *philo, t_philoargs *args)
 {
 	long	time_since_last_meal;
 
-	if (philo->is_eating == 0)
-	{
 		pthread_mutex_lock(&philo->meal_mutex);
 		time_since_last_meal = get_time_of_day() - philo->last_meal_time;
 		if (time_since_last_meal > args->time_to_die)
@@ -33,7 +31,6 @@ int	check_philosopher_death(t_philosopher *philo, t_philoargs *args)
 			return (1);
 		}
 		pthread_mutex_unlock(&philo->meal_mutex);
-	}
 	return (0);
 }
 
@@ -56,37 +53,51 @@ void	*monitor_routine(void *arg)
 				return (NULL);
 			i++;
 		}
-		usleep(1000);
+		usleep(50);
 	}
 	return (NULL);
 }
 
-void	eating_routine(t_philosopher *philo, pthread_mutex_t *left_fork,
-		pthread_mutex_t *right_fork, t_philoargs *philoarg)
+void eating_routine(t_philosopher *philo, pthread_mutex_t *left_fork,
+    pthread_mutex_t *right_fork, t_philoargs *philoarg)
 {
-	pthread_mutex_lock(left_fork);
-	print_state(philo, "has taken a fork", philoarg);
-	if (philoarg->no_philosophers == 1)
-	{
-		precise_sleep(philoarg->time_to_die + 1, philoarg);
-		pthread_mutex_unlock(left_fork);
-		pthread_mutex_lock(&philoarg->terminate_mutex);
-		philoarg->should_terminate = 1;
-		pthread_mutex_unlock(&philoarg->terminate_mutex);
-		return ;
-	}
-	pthread_mutex_lock(right_fork);
-	print_state(philo, "has taken a fork", philoarg);
-	philo->is_eating = 1;
-	pthread_mutex_lock(&philo->meal_mutex);
-	philo->last_meal_time = get_time_of_day();
-	philo->times_eaten++;
-	print_state(philo, "is eating", philoarg);
-	precise_sleep(philoarg->time_to_eat, philoarg);
-	pthread_mutex_unlock(right_fork);
-	pthread_mutex_unlock(left_fork);
-	pthread_mutex_unlock(&philo->meal_mutex);
-	philo->is_eating = 0;
+    pthread_mutex_t	*first;
+    pthread_mutex_t	*second;
+
+    if (left_fork < right_fork)
+    {
+        first = left_fork;
+        second = right_fork;
+    }
+    else
+    {
+        first = right_fork;
+        second = left_fork;
+    }
+    if (philoarg->no_philosophers == 1)
+    {
+        pthread_mutex_lock(first);
+        print_state(philo, "has taken a fork", philoarg);
+        precise_sleep(philoarg->time_to_die, philoarg);
+        pthread_mutex_unlock(first);
+        pthread_mutex_lock(&philoarg->terminate_mutex);
+        philoarg->should_terminate = 1;
+        pthread_mutex_unlock(&philoarg->terminate_mutex);
+        return;
+    }.
+    pthread_mutex_lock(first);
+    print_state(philo, "has taken a fork", philoarg);
+    pthread_mutex_lock(second);
+    print_state(philo, "has taken a fork", philoarg);
+    pthread_mutex_lock(&philo->meal_mutex);
+    philo->last_meal_time = get_time_of_day();
+    philo->times_eaten++;
+    print_state(philo, "is eating", philoarg);
+    pthread_mutex_unlock(&philo->meal_mutex);
+    precise_sleep(philoarg->time_to_eat, philoarg);
+    pthread_mutex_unlock(second);
+    pthread_mutex_unlock(first);
+    usleep(500);
 }
 
 void	sleeping_routine(t_philosopher *philo, t_philoargs *philoarg)

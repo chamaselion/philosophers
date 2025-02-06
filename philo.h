@@ -22,17 +22,17 @@
 
 typedef struct s_philoargs
 {
-	int				no_philosophers;
-	int				time_to_die;
-	int				time_to_eat;
-	int				time_to_sleep;
-	int				no_t_philosopher_must_eat;
-	int				extra;
-	long			firstime;
-	pthread_mutex_t	terminate_mutex;
-	pthread_mutex_t	print_mutex;
-	pthread_mutex_t	*forks;
-	int				should_terminate;
+	int							no_philosophers;
+	int							time_to_die;
+	int							time_to_eat;
+	int							time_to_sleep;
+	int							no_t_philosopher_must_eat;
+	int							extra;
+	long						firstime;
+	pthread_mutex_t				terminate_mutex;
+	pthread_mutex_t				print_mutex;
+	pthread_mutex_t				*forks;
+	volatile int				should_terminate;
 }	t_philoargs;
 
 typedef struct s_philosopher
@@ -42,7 +42,7 @@ typedef struct s_philosopher
 	t_philoargs		*args;
 	long			last_meal_time;
 	int				times_eaten;
-	int				is_eating;
+	//int				is_eating;
 	pthread_mutex_t	meal_mutex;
 }	t_philosopher;
 
