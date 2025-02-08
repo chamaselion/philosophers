@@ -105,6 +105,8 @@ void	*philo_routine(void *arg)
 	philo = (t_philosopher *)arg;
 	philoarg = philo->args;
 	initialize_forks(philo, &left_fork, &right_fork);
+	if (philoarg->no_t_philosopher_must_eat == 0)
+		return (NULL);
 	if (philo->id % 2 == 0)
 		usleep(8000);
 	while (1)

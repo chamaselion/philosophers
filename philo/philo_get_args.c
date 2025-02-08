@@ -44,6 +44,8 @@ void	get_args(t_philoargs *args, char **argv)
 	args->time_to_sleep = ft_atoi(argv[4]);
 	if (args->extra == 1)
 		args->no_t_philosopher_must_eat = ft_atoi(argv[5]);
+	else
+		args->no_t_philosopher_must_eat = -1;
 }
 
 int	user_input_parse(t_philoargs *args, int argc, char **argv)
