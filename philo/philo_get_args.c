@@ -53,15 +53,20 @@ int	user_input_parse(t_philoargs *args, int argc, char **argv)
 	err = pre_check(argc, argv, &args->extra);
 	if (err == -1)
 	{
-		printf("Error, number of arguments is incorrect.\n");
+		write(STDERR_FILENO, "Error, number of arguments is incorrect.\n", 41);
 		return (1);
 	}
 	if (err == -2)
 	{
-		printf("Error, non-digit found in the argument\n");
+		write(STDERR_FILENO, "Error, non-digit found in the argument\n", 39);
 		return (1);
 	}
 	else
 		get_args(args, argv);
+	if (args->no_philosophers == 0)
+	{
+		write(STDERR_FILENO, "Error, simulation can not start with 0 philos\n", 46);
+		return (1);
+	}
 	return (0);
 }
