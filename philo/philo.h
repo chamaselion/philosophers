@@ -20,6 +20,12 @@
 # include "philo.h"
 # include <sys/time.h>
 
+typedef struct s_fork
+{
+    pthread_mutex_t	mutex;
+    int				available;
+}	t_fork;
+
 typedef struct s_philoargs
 {
 	int							no_philosophers;
@@ -31,18 +37,17 @@ typedef struct s_philoargs
 	long						firstime;
 	pthread_mutex_t				terminate_mutex;
 	pthread_mutex_t				print_mutex;
-	pthread_mutex_t				*forks;
+	t_fork						*forks;
 	volatile int				should_terminate;
 }	t_philoargs;
 
 typedef struct s_philosopher
 {
 	int				id;
-	pthread_mutex_t	*fork;
+	t_fork			*fork;
 	t_philoargs		*args;
 	long			last_meal_time;
 	int				times_eaten;
-	//int				is_eating;
 	pthread_mutex_t	meal_mutex;
 }	t_philosopher;
 
@@ -52,8 +57,8 @@ void	threads_free(t_philoargs *args, pthread_t *thread,
 			t_philosopher *philo);
 int		ft_atoi(const char *t);
 long	get_time_of_day(void);
-void	initialize_forks(t_philosopher *philo, pthread_mutex_t **left_fork,
-			pthread_mutex_t **right_fork);
+void	initialize_forks(t_philosopher *philo, t_fork **left_fork,
+            t_fork **right_fork);
 
 //philo routines
 void	*philo_routine(void *arg);

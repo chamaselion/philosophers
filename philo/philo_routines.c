@@ -36,12 +36,16 @@ void	*monitor_routine(void *arg)
 	return (NULL);
 }
 
-void	perform_eating(t_philosopher *philo, pthread_mutex_t *first,
-		pthread_mutex_t *second, t_philoargs *philoarg)
+void	perform_eating(t_philosopher *philo, t_fork *first,
+        t_fork *second, t_philoargs *philoarg)
 {
-	pthread_mutex_lock(first);
+	pthread_mutex_lock(&first->mutex);
+	if (first->available)
+		first->available = 0;
 	print_state(philo, "has taken a fork", philoarg);
-	pthread_mutex_lock(second);
+	pthread_mutex_lock(&second->mutex);
+	if (second->available)
+		second->available = 0;
 	print_state(philo, "has taken a fork", philoarg);
 	pthread_mutex_lock(&philo->meal_mutex);
 	philo->last_meal_time = get_time_of_day();
@@ -49,17 +53,19 @@ void	perform_eating(t_philosopher *philo, pthread_mutex_t *first,
 	print_state(philo, "is eating", philoarg);
 	pthread_mutex_unlock(&philo->meal_mutex);
 	precise_sleep(philoarg->time_to_eat, philoarg);
-	pthread_mutex_unlock(second);
-	pthread_mutex_unlock(first);
+	first->available = 1;
+	second->available = 1;
+	pthread_mutex_unlock(&second->mutex);
+	pthread_mutex_unlock(&first->mutex);
 }
 
-void	eating_routine(t_philosopher *philo, pthread_mutex_t *left_fork,
-		pthread_mutex_t *right_fork, t_philoargs *philoarg)
+void	eating_routine(t_philosopher *philo, t_fork *left_fork,
+        t_fork *right_fork, t_philoargs *philoarg)
 {
-	pthread_mutex_t	*first;
-	pthread_mutex_t	*second;
+	t_fork	*first;
+	t_fork	*second;
 
-	if (left_fork < right_fork)
+	if ((unsigned long)left_fork < (unsigned long)right_fork)
 	{
 		first = left_fork;
 		second = right_fork;
@@ -71,10 +77,10 @@ void	eating_routine(t_philosopher *philo, pthread_mutex_t *left_fork,
 	}
 	if (philoarg->no_philosophers == 1)
 	{
-		pthread_mutex_lock(first);
+		pthread_mutex_lock(&first->mutex);
 		print_state(philo, "has taken a fork", philoarg);
 		precise_sleep(philoarg->time_to_die, philoarg);
-		pthread_mutex_unlock(first);
+		pthread_mutex_unlock(&first->mutex);
 		pthread_mutex_lock(&philoarg->terminate_mutex);
 		philoarg->should_terminate = 1;
 		pthread_mutex_unlock(&philoarg->terminate_mutex);
@@ -93,8 +99,8 @@ void	*philo_routine(void *arg)
 {
 	t_philosopher	*philo;
 	t_philoargs		*philoarg;
-	pthread_mutex_t	*left_fork;
-	pthread_mutex_t	*right_fork;
+	t_fork			*left_fork;
+	t_fork			*right_fork;
 
 	philo = (t_philosopher *)arg;
 	philoarg = philo->args;
