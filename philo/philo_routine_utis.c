@@ -68,20 +68,18 @@ void	extra_checker(int *all_right, t_philosopher *philos, t_philoargs *args)
 	}
 }
 
-void	initialize_forks(t_philosopher *philo, pthread_mutex_t **left_fork,
-		pthread_mutex_t **right_fork)
+void	initialize_forks(t_philosopher *philo, t_fork **left_fork,
+        t_fork **right_fork)
 {
 	if (philo->id % 2 == 0)
 	{
 		*left_fork = philo->fork;
-		*right_fork = &philo->args->forks[philo->id
-			% philo->args->no_philosophers];
+		*right_fork = &philo->args->forks[philo->id % philo->args->no_philosophers];
 	}
 	else
 	{
 		*right_fork = philo->fork;
-		*left_fork = &philo->args->forks[philo->id
-			% philo->args->no_philosophers];
+		*left_fork = &philo->args->forks[philo->id % philo->args->no_philosophers];
 	}
 }
 

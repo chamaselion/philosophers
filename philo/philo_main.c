@@ -20,18 +20,18 @@ void	threads_join(t_philoargs *args, pthread_t *thread)
 	while (i < args->no_philosophers)
 	{
 		pthread_join(thread[i], NULL);
-		i = i + 1;
+		i++;
 	}
 }
 
 void	threads_free(t_philoargs *args, pthread_t *thread, t_philosopher *philo)
 {
-	int	i;
+    int	i;
 
 	i = 0;
 	while (i < args->no_philosophers)
 	{
-		pthread_mutex_destroy(&args->forks[i]);
+		pthread_mutex_destroy(&args->forks[i].mutex);
 		pthread_mutex_destroy(&philo[i].meal_mutex);
 		i++;
 	}
@@ -44,7 +44,8 @@ void	threads_free(t_philoargs *args, pthread_t *thread, t_philosopher *philo)
 
 void	initialize_philosopher(t_philosopher *philo, t_philoargs *ar, int i)
 {
-	pthread_mutex_init(&ar->forks[i], NULL);
+	pthread_mutex_init(&ar->forks[i].mutex, NULL);
+	ar->forks[i].available = 1;
 	pthread_mutex_init(&philo[i].meal_mutex, NULL);
 	philo[i].id = i + 1;
 	philo[i].fork = &ar->forks[i];
@@ -55,12 +56,12 @@ void	initialize_philosopher(t_philosopher *philo, t_philoargs *ar, int i)
 
 void	threads_init(t_philoargs *ar, pthread_t **thread, t_philosopher **philo)
 {
-	int	i;
+    int	i;
 
 	i = 0;
 	*thread = malloc(sizeof(pthread_t) * ar->no_philosophers);
 	*philo = malloc(sizeof(t_philosopher) * ar->no_philosophers);
-	ar->forks = malloc(sizeof(pthread_mutex_t) * ar->no_philosophers);
+	ar->forks = malloc(sizeof(t_fork) * ar->no_philosophers);
 	pthread_mutex_init(&ar->print_mutex, NULL);
 	pthread_mutex_init(&ar->terminate_mutex, NULL);
 	ar->should_terminate = 0;
