@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror
-SRCS = philo_main.c philo_utis.c philo_get_args.c philo_routine_utis.c philo_routines.c philo_get_args2.c
+SRCS = philo_main.c philo_utis.c philo_get_args.c philo_routine_utis.c philo_routines.c philo_get_args2.c philo_thread_init.c
 OBJS = $(SRCS:.c=.o)
 NAME = philo
 
