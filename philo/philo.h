@@ -77,5 +77,7 @@ int		check_philosopher_death(t_philosopher *philo, t_philoargs *args);
 
 // philo input handle
 int		user_input_parse(t_philoargs *args, int argc, char **argv);
+int		get_args(t_philoargs *args, char **argv);
+long	atol_with_error(const char *s, int *error);
 
 #endif
