@@ -12,34 +12,6 @@
 
 #include "philo.h"
 
-int	ft_atoi(const char *t)
-{
-	int	r;
-	int	c;
-	int	s;
-
-	c = 0;
-	r = 0;
-	s = 1;
-	while (t[c] == ' ' || t[c] == '\t' || t[c] == '\r' || t[c] == '\n'
-		|| t[c] == '\v' || t[c] == '\f')
-	{
-		c++;
-	}
-	if (t[c] == '-' || t[c] == '+')
-	{
-		if (t[c] == '-')
-			s = -1;
-		c++;
-	}
-	while (t[c] >= '0' && t[c] <= '9')
-	{
-		r = r * 10 + (t[c] - '0');
-		c++;
-	}
-	return (r * s);
-}
-
 int	str_isdigit(char *i)
 {
 	int	c;
@@ -87,4 +59,36 @@ int	check_philosopher_death(t_philosopher *philo, t_philoargs *args)
 	}
 	pthread_mutex_unlock(&philo->meal_mutex);
 	return (0);
+}
+
+void	free_forks(t_philoargs *args)
+{
+	int	i;
+
+	i = 0;
+	if (args->forks)
+	{
+		while (i < args->no_philosophers)
+		{
+			pthread_mutex_destroy(&args->forks[i].mutex);
+			i++;
+		}
+		free(args->forks);
+	}
+}
+
+void	free_philosophers(t_philoargs *args, t_philosopher *philo)
+{
+	int	i;
+
+	if (philo)
+	{
+		i = 0;
+		while (i < args->no_philosophers)
+		{
+			pthread_mutex_destroy(&philo[i].meal_mutex);
+			i++;
+		}
+		free(philo);
+	}
 }

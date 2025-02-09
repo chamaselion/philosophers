@@ -109,18 +109,6 @@ void	*philo_routine(void *arg)
 		return (NULL);
 	if (philo->id % 2 == 0)
 		usleep(8000);
-	while (1)
-	{
-		pthread_mutex_lock(&philoarg->terminate_mutex);
-		if (philoarg->should_terminate)
-		{
-			pthread_mutex_unlock(&philoarg->terminate_mutex);
-			break ;
-		}
-		pthread_mutex_unlock(&philoarg->terminate_mutex);
-		print_state(philo, "is thinking", philoarg);
-		eating_routine(philo, left_fork, right_fork, philoarg);
-		sleeping_routine(philo, philoarg);
-	}
+	philo_lifecycle(philo, left_fork, right_fork, philoarg);
 	return (NULL);
 }
