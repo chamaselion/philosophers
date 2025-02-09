@@ -26,56 +26,81 @@ void	threads_join(t_philoargs *args, pthread_t *thread)
 
 void	threads_free(t_philoargs *args, pthread_t *thread, t_philosopher *philo)
 {
-    int	i;
+	int	i;
 
 	i = 0;
-	while (i < args->no_philosophers)
+	if (args->forks)
 	{
-		pthread_mutex_destroy(&args->forks[i].mutex);
-		pthread_mutex_destroy(&philo[i].meal_mutex);
-		i++;
+		while (i < args->no_philosophers)
+		{
+			pthread_mutex_destroy(&args->forks[i].mutex);
+			i++;
+		}
+		free(args->forks);
+	}
+	if (philo)
+	{
+		i = 0;
+		while (i < args->no_philosophers)
+		{
+			pthread_mutex_destroy(&philo[i].meal_mutex);
+			i++;
+		}
+		free(philo);
 	}
 	pthread_mutex_destroy(&args->print_mutex);
 	pthread_mutex_destroy(&args->terminate_mutex);
-	free(args->forks);
-	free(thread);
-	free(philo);
+	if (thread)
+		free(thread);
 }
 
-void	initialize_philosopher(t_philosopher *philo, t_philoargs *ar, int i)
+int	initialize_philosopher(t_philosopher *philo, t_philoargs *ar, int i)
 {
-	pthread_mutex_init(&ar->forks[i].mutex, NULL);
+	if (pthread_mutex_init(&ar->forks[i].mutex, NULL) != 0)
+		return (1);
 	ar->forks[i].available = 1;
-	pthread_mutex_init(&philo[i].meal_mutex, NULL);
+	if (pthread_mutex_init(&philo[i].meal_mutex, NULL) != 0)
+		return (1);
 	philo[i].id = i + 1;
 	philo[i].fork = &ar->forks[i];
 	philo[i].args = ar;
 	philo[i].last_meal_time = get_time_of_day();
 	philo[i].times_eaten = 0;
+	return (0);
 }
 
-void	threads_init(t_philoargs *ar, pthread_t **thread, t_philosopher **philo)
+int	threads_init(t_philoargs *ar, pthread_t **thread, t_philosopher **philo)
 {
-    int	i;
+	int	i;
 
 	i = 0;
 	*thread = malloc(sizeof(pthread_t) * ar->no_philosophers);
+	if (!*thread)
+		return (1);
 	*philo = malloc(sizeof(t_philosopher) * ar->no_philosophers);
+	if (!*philo)
+		return (free(*thread), 1);
 	ar->forks = malloc(sizeof(t_fork) * ar->no_philosophers);
-	pthread_mutex_init(&ar->print_mutex, NULL);
-	pthread_mutex_init(&ar->terminate_mutex, NULL);
+	if (!ar->forks)
+		return (free(*thread), free(*philo), 1);
+	if (pthread_mutex_init(&ar->print_mutex, NULL) != 0
+		|| pthread_mutex_init(&ar->terminate_mutex, NULL) != 0)
+		return (free(*thread), free(*philo), free(ar->forks), 1);
 	ar->should_terminate = 0;
 	while (i < ar->no_philosophers)
 	{
-		initialize_philosopher(*philo, ar, i);
+		if (initialize_philosopher(*philo, ar, i) == 1)
+			return (free(*thread), free(*philo), free(ar->forks), 1);
 		i++;
 	}
 	i = 0;
 	while (i < ar->no_philosophers)
 	{
-		pthread_create(&(*thread)[i], NULL, philo_routine, &(*philo)[i]);
+		if (pthread_create(&(*thread)[i], NULL, philo_routine, &(*philo)[i]) != 0)
+			return (free(*thread), free(*philo), free(ar->forks), 1);
 		i++;
 	}
+	return (0);
 }
 
 int	main(int argc, char **argv)
@@ -94,7 +119,8 @@ int	main(int argc, char **argv)
 		return (1);
 	}
 	args.firstime = get_time_of_day();
-	threads_init(&args, &thread, &philo);
+	if (threads_init(&args, &thread, &philo) == 1)
+		return (1);
 	pthread_create(&monitor_thread, NULL, monitor_routine, philo);
 	threads_join(&args, thread);
 	pthread_join(monitor_thread, NULL);
