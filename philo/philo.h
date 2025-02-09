@@ -17,28 +17,32 @@
 # include <stdlib.h>
 # include <pthread.h>
 # include <unistd.h>
-# include "philo.h"
+# include <limits.h>
 # include <sys/time.h>
+# include <ctype.h>
+# include <string.h>
+
+# define MAX_DIGITS 19
 
 typedef struct s_fork
 {
-    pthread_mutex_t	mutex;
-    int				available;
+	pthread_mutex_t	mutex;
+	int				available;
 }	t_fork;
 
 typedef struct s_philoargs
 {
 	int							no_philosophers;
-	int							time_to_die;
-	int							time_to_eat;
-	int							time_to_sleep;
-	int							no_t_philosopher_must_eat;
+	long						time_to_die;
+	long						time_to_eat;
+	long						time_to_sleep;
+	long						no_t_philosopher_must_eat;
 	int							extra;
 	long						firstime;
 	pthread_mutex_t				terminate_mutex;
 	pthread_mutex_t				print_mutex;
 	t_fork						*forks;
-	volatile int				should_terminate;
+	int							should_terminate;
 }	t_philoargs;
 
 typedef struct s_philosopher
@@ -47,7 +51,7 @@ typedef struct s_philosopher
 	t_fork			*fork;
 	t_philoargs		*args;
 	long			last_meal_time;
-	int				times_eaten;
+	long			times_eaten;
 	pthread_mutex_t	meal_mutex;
 }	t_philosopher;
 
@@ -58,7 +62,7 @@ void	threads_free(t_philoargs *args, pthread_t *thread,
 int		ft_atoi(const char *t);
 long	get_time_of_day(void);
 void	initialize_forks(t_philosopher *philo, t_fork **left_fork,
-            t_fork **right_fork);
+			t_fork **right_fork);
 
 //philo routines
 void	*philo_routine(void *arg);

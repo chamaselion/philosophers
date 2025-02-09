@@ -37,7 +37,7 @@ void	*monitor_routine(void *arg)
 }
 
 void	perform_eating(t_philosopher *philo, t_fork *first,
-        t_fork *second, t_philoargs *philoarg)
+		t_fork *second, t_philoargs *philoarg)
 {
 	pthread_mutex_lock(&first->mutex);
 	if (first->available)
@@ -60,7 +60,7 @@ void	perform_eating(t_philosopher *philo, t_fork *first,
 }
 
 void	eating_routine(t_philosopher *philo, t_fork *left_fork,
-        t_fork *right_fork, t_philoargs *philoarg)
+		t_fork *right_fork, t_philoargs *philoarg)
 {
 	t_fork	*first;
 	t_fork	*second;

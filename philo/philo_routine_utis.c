@@ -69,7 +69,7 @@ void	extra_checker(int *all_right, t_philosopher *philos, t_philoargs *args)
 }
 
 void	initialize_forks(t_philosopher *philo, t_fork **left_fork,
-        t_fork **right_fork)
+		t_fork **right_fork)
 {
 	if (philo->id % 2 == 0)
 	{
