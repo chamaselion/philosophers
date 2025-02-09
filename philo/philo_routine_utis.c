@@ -6,7 +6,7 @@
 /*   By: bszikora <bszikora@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/09 16:03:00 by bszikora          #+#    #+#             */
-/*   Updated: 2024/12/11 16:22:25 by bszikora         ###   ########.fr       */
+/*   Updated: 2025/02/09 18:27:37 by bszikora         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,12 +74,14 @@ void	initialize_forks(t_philosopher *philo, t_fork **left_fork,
 	if (philo->id % 2 == 0)
 	{
 		*left_fork = philo->fork;
-		*right_fork = &philo->args->forks[philo->id % philo->args->no_philosophers];
+		*right_fork = &philo->args->forks[philo->id
+			% philo->args->no_philosophers];
 	}
 	else
 	{
 		*right_fork = philo->fork;
-		*left_fork = &philo->args->forks[philo->id % philo->args->no_philosophers];
+		*left_fork = &philo->args->forks[philo->id
+			% philo->args->no_philosophers];
 	}
 }
 

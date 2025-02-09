@@ -6,7 +6,7 @@
 /*   By: bszikora <bszikora@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/09 16:04:50 by bszikora          #+#    #+#             */
-/*   Updated: 2025/02/06 16:25:57 by bszikora         ###   ########.fr       */
+/*   Updated: 2025/02/09 18:27:42 by bszikora         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,8 +36,8 @@ void	*monitor_routine(void *arg)
 	return (NULL);
 }
 
-void	perform_eating(t_philosopher *philo, t_fork *first,
-		t_fork *second, t_philoargs *philoarg)
+void	perform_eating(t_philosopher *philo, t_fork *first, t_fork *second,
+		t_philoargs *philoarg)
 {
 	pthread_mutex_lock(&first->mutex);
 	if (first->available)

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   philo_thread_init.c                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bszikora <bszikora@student.42heilbronn.de> +#+  +:+       +#+        */
+/*   By: bszikora <bszikora@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/09 18:06:56 by bszikora          #+#    #+#             */
-/*   Updated: 2025/02/09 18:06:56 by bszikora         ###   ########.fr       */
+/*   Updated: 2025/02/09 18:27:46 by bszikora         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,8 @@ int	create_threads(t_philoargs *ar, pthread_t *thread, t_philosopher *philo)
 	return (0);
 }
 
-void	philo_lifecycle(t_philosopher *philo, t_fork *left_fork, t_fork *right_fork, t_philoargs *philoarg)
+void	philo_lifecycle(t_philosopher *philo, t_fork *left_fork,
+		t_fork *right_fork, t_philoargs *philoarg)
 {
 	while (1)
 	{
